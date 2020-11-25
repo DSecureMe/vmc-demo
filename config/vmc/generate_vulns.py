@@ -173,9 +173,9 @@ def generate_vulns(asset_count, asset_search, cve_sets):
 
 def main():
     start_update_assets()
-    #start_processing()
-    #print('Download CVEs')
-    """
+    start_processing()
+    print('Download CVEs')
+
     group(
         update_cwe.si() |
         group(update_cve.si(year) for year in range(START_YEAR, datetime.now().year + 1)) |
@@ -207,7 +207,6 @@ def main():
     generate_vulns(asset_count, asset_search, cve_sets)
 
     start_processing()
-    """
 
 
 if __name__ == '__main__':

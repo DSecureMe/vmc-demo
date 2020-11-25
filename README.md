@@ -50,7 +50,7 @@ rabbitmq.host: rabbitmq
 rabbitmq.port: 5672
 
 # Secret
-secret_key: "jk&e^6%5@^5!^1jq8#vd2g^@8w9g5#i_v*ho!#mx%y7%5fuz9%"
+secret_key: "*********************************************"
 debug: true
 
 # Admin Service Name
