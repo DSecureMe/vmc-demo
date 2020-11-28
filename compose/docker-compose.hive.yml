@@ -1,26 +1,11 @@
 version: "3.3"
 
 services:
-  hive_elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.0
-    volumes:
-      - elastic-hive-data:/usr/share/elasticsearch/data
-      - ../config/hive_elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
-      - ../config/hive_elasticsearch/data:/test_data
-    ulimits:
-      nofile:
-        soft: 65536
-        hard: 65536
-
   hive:
-    image: thehiveproject/thehive:latest
+    image: thehiveproject/thehive:3.5.0-1
     depends_on:
-      - hive_elasticsearch
+      - elasticsearch
     ports:
       - "9000:9000"
     volumes:
       - ../config/thehive/application.conf:/etc/thehive/application.conf
-
-volumes:
-  elastic-hive-data:
-    driver: local

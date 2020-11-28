@@ -16,7 +16,7 @@ Then:
 - on port `:5601` you can find Kibana panel with sample KPIs.
 - on port `:8081` you can find Ralph with sample assets (login ralph, password: ralph).
 - on port `:9000` you can find The Hive with the sample alerts(login admin, password: admin).
-- on port `:8080/admin` you can find VMC admin panel with the sample configuration (login admin, password: adminadmin).
+- on port `:8080` you can find VMC admin panel with the sample configuration (login admin, password: admin).
 
 More guides will be published on [doc report](https://github.com/DSecureMe/vmc-docs) very soon
 
@@ -27,13 +27,16 @@ All configs you may find in `demo/config/`
 Once build it will be in `/etc/vmc/`
 In demo repo you can find it in `/demo/config/vmc/demo.yml`
 ```
+#VMC
+vmc.ssl: False
+vmc.domain: localhost
+vmc.port: 80
+
 #Redis
 redis.url: redis://redis:6379/1
 
 #Elastic Search
 elasticsearch.hosts: ["http://elasticsearch:9200"]
-elasticsearch.user: elastic
-elasticsearch.password: kibana
 
 #database
 database.engine: django.db.backends.postgresql_psycopg2

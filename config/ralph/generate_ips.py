@@ -54,7 +54,7 @@ https://ieeexplore.ieee.org/abstract/document/6195556
 OS_FAMILY_WEIGHTS = [0.53, 0.07, 0.25, 0.15]
 
 USER_MODEL = get_user_model()
-MIN_IP_COUNT = 1000
+MIN_IP_COUNT = 422
 
 
 def _generate_mac():
@@ -82,8 +82,8 @@ def _random_ip_address():
 
 def main():
     dc_assets = DataCenterAsset.objects.all()
-    """
-    os_field = CustomField.objects.get(name='os')
+
+    os_field = CustomField.objects.create(
         name='os',
         type=CustomFieldTypes.STRING
     )
@@ -108,26 +108,26 @@ def main():
     for idx, asset in enumerate(dc_assets):
         asset.custom_fields.add(CustomFieldValue.objects.create(
             custom_field=confidentiality_field,
-            value=random.choices(IMPACT, IMPACT_WEIGHTS)[0],
+            value=random.choice(IMPACT),
             object_id=asset.pk,
             content_type=content_type
         ))
         asset.custom_fields.add(CustomFieldValue.objects.create(
             custom_field=integrity_field,
-            value=random.choices(IMPACT, IMPACT_WEIGHTS)[0],
+            value=random.choice(IMPACT),
             object_id=asset.pk,
             content_type=content_type
         ))
         asset.custom_fields.add(CustomFieldValue.objects.create(
             custom_field=availability_field,
-            value=random.choices(IMPACT, IMPACT_WEIGHTS)[0],
+            value=random.choice(IMPACT),
             object_id=asset.pk,
             content_type=content_type
         ))
         os_family = random.choices(list(OS_FAMILY.keys()), OS_FAMILY_WEIGHTS)[0]
         asset.custom_fields.add(CustomFieldValue.objects.create(
             custom_field=os_field,
-            value=random.choices(OS_FAMILY[os_family])[0],
+            value=random.choice(OS_FAMILY[os_family]),
             object_id=asset.pk,
             content_type=content_type
         ))
@@ -141,7 +141,7 @@ def main():
             asset.service_env.service.technical_owners.add(bo)
 
         asset.save()
-    """
+
     while len(USED_IPS) <= MIN_IP_COUNT:
         for idx, asset in enumerate(dc_assets):
             eth = Ethernet.objects.create(base_object=asset.asset, mac=_generate_mac())

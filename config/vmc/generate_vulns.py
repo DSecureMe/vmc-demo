@@ -22,7 +22,6 @@ import random
 import time
 import concurrent.futures
 
-from unittest import mock
 
 from celery import group
 from elasticsearch_dsl import Q
@@ -34,7 +33,6 @@ from elasticsearch_dsl.connections import get_connection
 from elasticsearch.helpers import bulk
 
 application = get_wsgi_application()
-from vmc.ralph.tasks import start_update_assets
 from datetime import datetime, timedelta
 from vmc.ralph.models import Config as RalphConfig
 from vmc.ralph.tasks import _update_assets
@@ -122,7 +120,7 @@ def generate_vulns(asset_count, asset_search, cve_sets):
         asset_vuln[a.ip_address] = []
         assets.append(a)
 
-    while vuln_count / asset_count < 130:
+    while vuln_count / asset_count < 60:
         vuln_count = 0
 
         if len(assets) == 0:
@@ -138,15 +136,15 @@ def generate_vulns(asset_count, asset_search, cve_sets):
             cve = random.choice(cve_set)
             if cve.id not in asset_vuln[asset.ip_address]:
                 asset_vuln[asset.ip_address].append(cve)
-                with mock.patch('vmc.elasticsearch.documents.now') as mock_now:
-                    mock_now.return_value = datetime.now() - timedelta(days=random.randint(1, 90))
-                    vulns.append(VulnerabilityDocument(
-                        id=F'{asset.id}-{cve.id}',
-                        asset=asset,
-                        cve=cve,
-                        description=cve.summary,
-                        protocol='tcp'
-                    ).to_dict())
+                vulns.append(VulnerabilityDocument(
+                    id=F'{asset.id}-{cve.id}',
+                    asset=asset,
+                    cve=cve,
+                    description=cve.summary,
+                    protocol='tcp',
+                    created_date=datetime.now() - timedelta(days=random.randint(1, 90)),
+                    modified_date=datetime.now() - timedelta(days=random.randint(1, 90))
+                ).to_dict())
 
         if len(vulns) > 10000:
             bulk_pool.append(bulk_executor.submit(_bulk, vulns))
@@ -172,7 +170,6 @@ def generate_vulns(asset_count, asset_search, cve_sets):
 
 
 def main():
-    start_update_assets()
     start_processing()
     print('Download CVEs')
 
