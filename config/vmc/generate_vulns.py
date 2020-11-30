@@ -130,7 +130,9 @@ def generate_vulns(asset_count, asset_search, cve_sets):
             cve_set = cve_sets[asset.os]
 
             if len(cve_sets[asset.os]) == len(asset_vuln[asset.ip_address]):
+                asset.last_scan_date = datetime.now()
                 assets.remove(asset)
+                asset.save()
                 break
 
             cve = random.choice(cve_set)
