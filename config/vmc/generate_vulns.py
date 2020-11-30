@@ -120,7 +120,7 @@ def generate_vulns(asset_count, asset_search, cve_sets):
         asset_vuln[a.ip_address] = []
         assets.append(a)
 
-    while vuln_count / asset_count < 60:
+    while vuln_count / asset_count < 30:
         vuln_count = 0
 
         if len(assets) == 0:
@@ -140,10 +140,14 @@ def generate_vulns(asset_count, asset_search, cve_sets):
                     id=F'{asset.id}-{cve.id}',
                     asset=asset,
                     cve=cve,
+                    name=F'Detected {cve.id} for {asset.ip_address}',
                     description=cve.summary,
+                    solution='Sample solution received from scanner',
                     protocol='tcp',
-                    created_date=datetime.now() - timedelta(days=random.randint(1, 90)),
-                    modified_date=datetime.now() - timedelta(days=random.randint(1, 90))
+                    created_date=datetime.now(),
+                    modified_date=datetime.now(),
+                    source='Generate Vulns Script',
+                    scan_file_url='http://generated_from_script'
                 ).to_dict())
 
         if len(vulns) > 10000:
@@ -170,9 +174,7 @@ def generate_vulns(asset_count, asset_search, cve_sets):
 
 
 def main():
-    start_processing()
     print('Download CVEs')
-
     group(
         update_cwe.si() |
         group(update_cve.si(year) for year in range(START_YEAR, datetime.now().year + 1)) |
@@ -181,7 +183,6 @@ def main():
 
     print('Update Assets')
     _update_assets(RalphConfig.objects.first().pk)
-
 
     asset_search = AssetDocument.search()
 

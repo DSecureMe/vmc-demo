@@ -7,6 +7,8 @@ services:
       - elastic-data:/usr/share/elasticsearch/data
       - ../config/elasticsearch/data:/test_data
       - ../config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    ports:
+      - "9200:9200"
     ulimits:
       nofile:
         soft: 65536
