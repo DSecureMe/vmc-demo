@@ -1,0 +1,11 @@
+version: "3.3"
+
+services:
+  hive:
+    image: thehiveproject/thehive:3.5.0-1
+    depends_on:
+      - elasticsearch
+    ports:
+      - "9000:9000"
+    volumes:
+      - ../config/thehive/application.conf:/etc/thehive/application.conf

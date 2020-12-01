@@ -1,0 +1,55 @@
+version: '3.3'
+
+services:
+  admin:
+    image: dsecureme/vmc:1.1-RC-2
+    ports:
+      - "8080:8080"
+    command: ["admin"]
+    depends_on:
+      - rabbitmq
+      - redis
+    volumes:
+      - ../config/vmc/demo.yml:/etc/vmc/config.yml
+      - ../config/vmc/:/test_data
+
+  worker:
+    image: dsecureme/vmc:1.1-RC-2
+    command: ["worker"]
+    depends_on:
+      - admin
+      - rabbitmq
+      - redis
+    volumes:
+      - ../config/vmc/demo.yml:/etc/vmc/config.yml
+
+  monitor:
+    image: dsecureme/vmc:1.1-RC-2
+    command: ["monitor"]
+    depends_on:
+      - rabbitmq
+    ports:
+      - "5555:8080"
+    volumes:
+      - ../config/vmc/demo.yml:/etc/vmc/config.yml
+
+  scheduler:
+    image: dsecureme/vmc:1.1-RC-2
+    command: ["scheduler"]
+    depends_on:
+      - admin
+      - rabbitmq
+    volumes:
+      - ../config/vmc/demo.yml:/etc/vmc/config.yml
+
+  rabbitmq:
+    image: rabbitmq:${RABBITMQ_VERSION}
+    env_file: ../.env
+
+  redis:
+    image: redis:${REDDIS_VERSION}
+
+
+volumes:
+  vmc-backup-data:
+    driver: local
