@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   admin:
-    image: dsecureme/vmc:latest
+    image: dsecureme/vmc:1.1-RC-2
     ports:
       - "8080:8080"
     command: ["admin"]
@@ -14,7 +14,7 @@ services:
       - ../config/vmc/:/test_data
 
   worker:
-    image: dsecureme/vmc:latest
+    image: dsecureme/vmc:1.1-RC-2
     command: ["worker"]
     depends_on:
       - admin
@@ -24,7 +24,7 @@ services:
       - ../config/vmc/demo.yml:/etc/vmc/config.yml
 
   monitor:
-    image: dsecureme/vmc:latest
+    image: dsecureme/vmc:1.1-RC-2
     command: ["monitor"]
     depends_on:
       - rabbitmq
@@ -34,7 +34,7 @@ services:
       - ../config/vmc/demo.yml:/etc/vmc/config.yml
 
   scheduler:
-    image: dsecureme/vmc:latest
+    image: dsecureme/vmc:1.1-RC-2
     command: ["scheduler"]
     depends_on:
       - admin
