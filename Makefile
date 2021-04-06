@@ -12,10 +12,7 @@ VMC = $(call compose-file,postgresql) \
       $(call compose-file,vmc) \
       $(call compose-file,ralph)
 
-.PHONY: all
-
-all:
-	make build
+.PHONY: up
 
 up:
 	sudo sysctl -w vm.max_map_count=262144
