@@ -10,7 +10,8 @@ VMC = $(call compose-file,postgresql) \
       $(call compose-file,hive) \
       $(call compose-file,elk) \
       $(call compose-file,vmc) \
-      $(call compose-file,ralph)
+      $(call compose-file,ralph) \
+      --env-file .env
 
 .PHONY: up
 
