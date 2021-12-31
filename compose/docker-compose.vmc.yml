@@ -2,9 +2,8 @@ version: '3.3'
 
 services:
   admin:
-    image: dsecureme/vmc:1.1-RC-2
-    ports:
-      - "8080:8080"
+    image: dsecureme/vmc:1.2-RC-2
+    restart: unless-stopped
     command: ["admin"]
     depends_on:
       - rabbitmq
@@ -13,8 +12,20 @@ services:
       - ../config/vmc/demo.yml:/etc/vmc/config.yml
       - ../config/vmc/:/test_data
 
+  nginx:
+    image: dsecureme/vmc-static-nginx:1.2-RC-2
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - admin
+    volumes:
+      - ../config/vmc/demo.yml:/etc/vmc/config.yml
+      - ../config/vmc/:/test_data
+
   worker:
-    image: dsecureme/vmc:1.1-RC-2
+    image: dsecureme/vmc:1.2-RC-2
+    restart: unless-stopped
     command: ["worker"]
     depends_on:
       - admin
@@ -23,18 +34,9 @@ services:
     volumes:
       - ../config/vmc/demo.yml:/etc/vmc/config.yml
 
-  monitor:
-    image: dsecureme/vmc:1.1-RC-2
-    command: ["monitor"]
-    depends_on:
-      - rabbitmq
-    ports:
-      - "5555:8080"
-    volumes:
-      - ../config/vmc/demo.yml:/etc/vmc/config.yml
-
   scheduler:
-    image: dsecureme/vmc:1.1-RC-2
+    image: dsecureme/vmc:1.2-RC-2
+    restart: unless-stopped
     command: ["scheduler"]
     depends_on:
       - admin

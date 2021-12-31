@@ -14,12 +14,12 @@ docker exec -it compose_web_1 ralphctl sitetree_resync_apps
 docker exec -it compose_web_1 python3 /test_data/generate_ips.py
 
 echo "VMC: Load data (superuser login: admin, password: admin)"
-docker exec -it compose_admin_1 vmc loaddata /test_data/demo_data.json
-docker exec -it compose_admin_1 vmc create_index
+docker exec -it compose_admin_1 python3.7 -m vmc loaddata /test_data/demo_data.json
+docker exec -it compose_admin_1 python3.7 -m vmc create_index
 
 echo "Kibana: Import Sample Dashboards and KPIs"
 docker exec -it compose_kibana_1 chmod +x /test_data/load.sh
 docker exec -it compose_kibana_1 /test_data/load.sh
 
 echo "VMC: Prepare demo data"
-docker exec -it compose_admin_1 python3 -W ignore /test_data/generate_vulns.py
+docker exec -it compose_admin_1 python3.7 -W ignore /test_data/generate_vulns.py
