@@ -4,6 +4,7 @@ services:
   admin:
     image: dsecureme/vmc:1.2-RC-2
     restart: unless-stopped
+    container_name: vmc_admin
     command: ["admin"]
     depends_on:
       - rabbitmq
@@ -14,21 +15,23 @@ services:
 
   nginx:
     image: dsecureme/vmc-static-nginx:1.2-RC-2
+    container_name: vmc_static
     restart: unless-stopped
     ports:
       - "8080:8080"
     depends_on:
-      - admin
+      - vmc_admin
     volumes:
       - ../config/vmc/demo.yml:/etc/vmc/config.yml
       - ../config/vmc/:/test_data
 
   worker:
     image: dsecureme/vmc:1.2-RC-2
+    container_name: vmc_worker
     restart: unless-stopped
     command: ["worker"]
     depends_on:
-      - admin
+      - vmc_admin
       - rabbitmq
       - redis
     volumes:
@@ -36,19 +39,22 @@ services:
 
   scheduler:
     image: dsecureme/vmc:1.2-RC-2
+    container_name: vmc_scheduler
     restart: unless-stopped
     command: ["scheduler"]
     depends_on:
-      - admin
+      - vmc_admin
       - rabbitmq
     volumes:
       - ../config/vmc/demo.yml:/etc/vmc/config.yml
 
   rabbitmq:
+    container_name: rabbitmq
     image: rabbitmq:${RABBITMQ_VERSION}
     env_file: ../.env
 
   redis:
+    container_name: redis
     image: redis:${REDDIS_VERSION}
 
 

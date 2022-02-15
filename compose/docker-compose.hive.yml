@@ -3,6 +3,7 @@ version: "3.3"
 services:
   hive:
     image: thehiveproject/thehive:3.5.0-1
+    container_name: hive
     depends_on:
       - elasticsearch
     ports:

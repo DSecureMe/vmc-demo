@@ -3,6 +3,7 @@ version: '3.3'
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELK_VERSION}
+    container_name: elasticsearch
     volumes:
       - elastic-data:/usr/share/elasticsearch/data
       - ../config/elasticsearch/data:/test_data
@@ -16,6 +17,7 @@ services:
 
   kibana:
     image: docker.elastic.co/kibana/kibana:${ELK_VERSION}
+    container_name: kibana
     ports:
       - "5601:5601"
     depends_on:

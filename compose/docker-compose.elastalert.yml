@@ -3,6 +3,7 @@ version: '3.3'
 services:
   elastalert:
     image: bitsensor/elastalert:3.0.0-beta.1
+    container_name: elastalert
     restart: unless-stopped
     depends_on:
       - kibana

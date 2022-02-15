@@ -3,6 +3,7 @@ version: '3.3'
 services:
   web:
     image: allegro/ralph:20191219.1
+    container_name: ralph_web
     volumes:
       - ralph_media:/var/local/ralph/media
       - ralph_static:/usr/share/ralph/static
@@ -23,6 +24,7 @@ services:
 
   ralph_nginx:
     image: allegro/ralph-static-nginx:20191219.1
+    container_name: ralph_nginx
     restart: unless-stopped
     ports:
       - "8081:80"
@@ -31,6 +33,7 @@ services:
 
   ralph_mariadb:
     image: mariadb:${MARIADB_VERSION}
+    container_name: ralph_mariadb
     env_file: ../.env
     volumes:
       - mariadb-data:/var/lib/mysql
@@ -38,6 +41,7 @@ services:
 
   ralph_inkpy:
     image: allegro/inkpy:0.1.4
+    container_name: ralph_inkpy
     environment:
         REDIS_HOST: redis
         REDIS_PASSWORD: ""
