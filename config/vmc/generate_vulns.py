@@ -33,7 +33,7 @@ from elasticsearch_dsl.connections import get_connection
 from elasticsearch.helpers import bulk
 
 application = get_wsgi_application()
-from datetime import datetime, timedelta
+from datetime import datetime
 from vmc.ralph.models import Config as RalphConfig
 from vmc.ralph.tasks import _update_assets
 from vmc.knowledge_base.tasks import update_cwe, update_cve, START_YEAR, update_exploits

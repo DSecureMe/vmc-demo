@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   admin:
-    image: dsecureme/vmc:1.2-RC-2
+    image: dsecureme/vmc:1.2-RC-3
     restart: unless-stopped
     container_name: vmc_admin
     command: ["admin"]
@@ -14,7 +14,7 @@ services:
       - ../config/vmc/:/test_data
 
   nginx:
-    image: dsecureme/vmc-static-nginx:1.2-RC-2
+    image: dsecureme/vmc-static-nginx:1.2-RC-3
     container_name: vmc_static
     restart: unless-stopped
     ports:
@@ -26,7 +26,7 @@ services:
       - ../config/vmc/:/test_data
 
   worker:
-    image: dsecureme/vmc:1.2-RC-2
+    image: dsecureme/vmc:1.2-RC-3
     container_name: vmc_worker
     restart: unless-stopped
     command: ["worker"]
@@ -38,7 +38,7 @@ services:
       - ../config/vmc/demo.yml:/etc/vmc/config.yml
 
   scheduler:
-    image: dsecureme/vmc:1.2-RC-2
+    image: dsecureme/vmc:1.2-RC-3
     container_name: vmc_scheduler
     restart: unless-stopped
     command: ["scheduler"]

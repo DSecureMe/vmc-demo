@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   web:
-    image: allegro/ralph:20191219.1
+    image: allegro/ralph:20220207.1
     container_name: ralph_web
     volumes:
       - ralph_media:/var/local/ralph/media
@@ -23,7 +23,7 @@ services:
         REDIS_DB: 0
 
   ralph_nginx:
-    image: allegro/ralph-static-nginx:20191219.1
+    image: allegro/ralph-static-nginx:20220207.1
     container_name: ralph_nginx
     restart: unless-stopped
     ports:
