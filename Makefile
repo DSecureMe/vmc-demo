@@ -17,15 +17,15 @@ VMC = $(call compose-file,postgresql) \
 
 up:
 	sudo sysctl -w vm.max_map_count=262144
-	docker-compose $(VMC) config
-	docker-compose $(VMC) up
+	docker compose $(VMC) config
+	docker compose $(VMC) up
 
 demodata:
 	@chmod +x config/demo_data.sh
 	@config/demo_data.sh
 
 down:
-	docker-compose $(VMC) down
+	docker compose $(VMC) down
 
 clean-images:
 	@echo "Deleting all containers"
