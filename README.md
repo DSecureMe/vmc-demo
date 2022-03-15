@@ -61,9 +61,10 @@ admin_service_name: admin
 ```
 
 
-# Requirments
-* docker
-* docker compose
+# Requirments (tested on)
+* Debian 10
+* docker, version 20.10.13
+* docker compose, version v2.2.3
 * make
 
 # Credit
