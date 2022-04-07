@@ -6,19 +6,32 @@
 **[VMC](https://github.com/DSecureMe/vmc)** (Vulnerability Management Center) is a platform created to make vulnerability management simple, easy and clean.
 
 # How to use
-## To run demo
-Open demo folder and build (it may take couple minutes)
+To run demo instance you need:
+- make
+- docker (tested on version 20.10.13), followed [these steps](https://docs.docker.com/engine/install/debian/)
+- docker compose (tested on version v2.2.3), followed [these steps](https://docs.docker.com/compose/cli-command/)
+
+**NOTE:**
+Remember to install compose not as root, but as that normal user. Pay close attention to the [following steps](https://docs.docker.com/compose/cli-command/#install-on-linux)
+
+Then simply run:
 ```
+git clone https://github.com/DSecureMe/vmc-demo.git && cd vmc-demo
 make up
-make demodata # If you want to configure and genrate demodata to see how everything works.
 ```
-Then:
+
+When all images are downloaded and kibana starts responding correctly on port `5601`:
+```
+make demodata
+```
+
+Services:
 - on port `:5601` you can find Kibana panel with sample KPIs.
 - on port `:8081` you can find Ralph with sample assets (login ralph, password: ralph).
 - on port `:9000` you can find The Hive with the sample alerts(login admin, password: admin).
 - on port `:8080` you can find VMC admin panel with the sample configuration (login admin, password: admin).
 
-More guides will be published on [doc report](https://github.com/DSecureMe/vmc-docs) very soon
+More guides you can find on [doc report](https://github.com/DSecureMe/vmc-docs)
 
 # Configuration files
 All configs you may find in `demo/config/`
@@ -59,13 +72,6 @@ debug: true
 # Admin Service Name
 admin_service_name: admin
 ```
-
-
-# Requirments (tested on)
-* Debian 10
-* docker, version 20.10.13
-* docker compose, version v2.2.3
-* make
 
 # Credit
 [VMC](https://github.com/DSecureMe/vmc)
