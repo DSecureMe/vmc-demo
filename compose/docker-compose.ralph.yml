@@ -25,7 +25,7 @@ services:
         REDIS_PORT: 6379
         REDIS_DB: 0
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost/healthcheck || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
