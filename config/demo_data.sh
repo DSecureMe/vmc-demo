@@ -1,13 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Idempotent demo seeder. Runs in non-TTY contexts via `docker exec -i`
-# (Pattern B). Each mutating step is preceded by a pre-flight probe so
-# re-running `make demodata` against an already-provisioned stack
-# logs "skipping" lines instead of failing (D-06).
+# Idempotent demo seeder. Uses `docker compose exec -T` so commands are
+# routed to compose services (not bare container names) and the same -T
+# flag works in TTY and non-TTY contexts (CI, pipes, scripts). Each
+# mutating step is preceded by a pre-flight probe so re-running
+# `make demodata` against an already-provisioned stack logs "skipping"
+# lines instead of failing (D-06).
 #
-# Convention: every probe captures the cheapest available signal
-# (HTTP count endpoint or a one-line Django/ralphctl shell exec).
+# Compose-service ↔ container-name map (compose names used below):
+#   elasticsearch → elasticsearch         (docker-compose.elk.yml)
+#   kibana        → kibana                (docker-compose.elk.yml)
+#   web           → ralph_web             (docker-compose.ralph.yml)
+#   admin         → vmc_admin             (docker-compose.vmc.yml)
+#
+# DC builds the compose command with every demo compose file plus the
+# top-level toolkit dev compose, so service resolution always succeeds
+# regardless of which `make` target started the stack. Run this script
+# from the toolkit root (Makefile's `demodata` target ensures that).
+DC=(docker compose --env-file vmc-demo/.env
+    -f vmc-demo/compose/docker-compose.postgresql.yml
+    -f vmc-demo/compose/docker-compose.elk.yml
+    -f vmc-demo/compose/docker-compose.vmc.yml
+    -f compose/docker-compose.vmc-dev.yml
+    -f vmc-demo/compose/docker-compose.ralph.yml
+    -f vmc-demo/compose/docker-compose.hive.yml
+    -f vmc-demo/compose/docker-compose.elastalert.yml)
 
 # --- Step 1: ElastAlert ------------------------------------------------------
 # The jertel/elastalert2 image entrypoint creates writeback indices on every
@@ -17,39 +35,39 @@ echo "ElastAlert: index init handled by image entrypoint"
 
 # --- Step 2: TheHive (D-02 best-effort restore, idempotency in inner script) -
 echo "HIVE: create database (superuser login: admin, password: admin)"
-docker exec -i elasticsearch chmod +x /test_data/load.sh
-docker exec -i elasticsearch /test_data/load.sh
+"${DC[@]}" exec -T elasticsearch chmod +x /test_data/load.sh
+"${DC[@]}" exec -T elasticsearch /test_data/load.sh
 
 # --- Step 3: Ralph migrations (already idempotent — invoke unconditionally) --
 echo "Ralph: Make migrations"
-docker exec -i ralph_web ralphctl migrate
+"${DC[@]}" exec -T web ralphctl migrate
 
 # --- Step 4: Ralph demodata + sitetree + generate_ips (probed) ---------------
-ralph_has_data=$(docker exec -i ralph_web ralphctl shell -c \
+ralph_has_data=$("${DC[@]}" exec -T web ralphctl shell -c \
     "from ralph.assets.models import DataCenter; print(DataCenter.objects.exists())" \
     2>/dev/null | tr -d '[:space:]')
 if [ "${ralph_has_data}" = "True" ]; then
     echo "Ralph: demo data already present; skipping ralphctl demodata"
 else
     echo "Ralph: Load demo data  (login: ralph, password: ralph)"
-    docker exec -i ralph_web ralphctl demodata
-    docker exec -i ralph_web ralphctl sitetree_resync_apps
-    docker exec -i ralph_web python3 /test_data/generate_ips.py
+    "${DC[@]}" exec -T web ralphctl demodata
+    "${DC[@]}" exec -T web ralphctl sitetree_resync_apps
+    "${DC[@]}" exec -T web python3 /test_data/generate_ips.py
 fi
 
 # --- Step 5: VMC loaddata (probed via Tenant.objects.exists()) ---------------
-vmc_has_tenants=$(docker exec -i vmc_admin python3 -m vmc shell -c \
+vmc_has_tenants=$("${DC[@]}" exec -T admin python3 -m vmc shell -c \
     "from vmc.elasticsearch.models import Tenant; print(Tenant.objects.exists())" \
     2>/dev/null | tr -d '[:space:]')
 if [ "${vmc_has_tenants}" = "True" ]; then
     echo "VMC: Tenant fixtures already loaded; skipping"
 else
     echo "VMC: Load data (superuser login: admin, password: admin)"
-    docker exec -i vmc_admin python3 -m vmc loaddata /test_data/demo_data.json
+    "${DC[@]}" exec -T admin python3 -m vmc loaddata /test_data/demo_data.json
 fi
 
 # --- Step 6: VMC create_index (already idempotent per RESEARCH §11) ----------
-docker exec -i vmc_admin python3 -m vmc create_index
+"${DC[@]}" exec -T admin python3 -m vmc create_index
 
 # --- Step 7: Kibana dashboards (probed via /api/saved_objects/_find) ---------
 kibana_dashboards=$(curl -s \
@@ -60,8 +78,8 @@ if [ "${kibana_dashboards}" -gt 0 ] 2>/dev/null; then
     echo "Kibana: dashboards already imported (${kibana_dashboards}); skipping"
 else
     echo "Kibana: Import Sample Dashboards and KPIs"
-    docker exec -i kibana chmod +x /test_data/load.sh
-    docker exec -i kibana /test_data/load.sh
+    "${DC[@]}" exec -T kibana chmod +x /test_data/load.sh
+    "${DC[@]}" exec -T kibana /test_data/load.sh
 fi
 
 # --- Step 8: generate_vulns (probed via vuln index count) --------------------
@@ -71,5 +89,5 @@ if [ "${vuln_count}" -gt 0 ] 2>/dev/null; then
     echo "VMC: vulnerability data already generated (${vuln_count} docs); skipping"
 else
     echo "VMC: Prepare demo data"
-    docker exec -i vmc_admin python3 -W ignore /test_data/generate_vulns.py
+    "${DC[@]}" exec -T admin python3 -W ignore /test_data/generate_vulns.py
 fi
