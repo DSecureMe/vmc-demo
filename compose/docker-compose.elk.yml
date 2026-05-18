@@ -29,6 +29,8 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
+    environment:
+      - KBN_VERSION=${ELK_VERSION}
     volumes:
       - ../config/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
       - ../config/kibana/:/test_data
