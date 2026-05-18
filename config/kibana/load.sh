@@ -1,3 +1,19 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-curl -F file=@/test_data/export.ndjson -X 'POST' 'http://localhost:5601/api/saved_objects/_import?overwrite=true' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0' -H $'Accept: */*' -H $'Accept-Language: pl,en-US;q=0.7,en;q=0.3' -H $'Accept-Encoding: gzip, deflate' -H $'Referer: http://172.16.250.133:5601/app/kibana' -H $'kbn-version: 7.5.0'
+# KBN_VERSION is injected from docker-compose.elk.yml (via vmc-demo/.env ELK_VERSION).
+# Fail loudly if unset so a missing env passthrough surfaces immediately
+# instead of hitting Kibana with a stale hard-coded value (D-09).
+: "${KBN_VERSION:?KBN_VERSION must be set (passed from docker compose env via vmc-demo/.env)}"
+
+# Kibana 7.17 saved-objects import API.
+# -f: fail on HTTP >= 400 so set -e aborts if Kibana rejects the import.
+# -s: silent progress meter.
+# -S: still show errors on stderr.
+# Headers: kbn-xsrf (anti-CSRF, demo runs with xpack.security disabled) and
+# kbn-version (must match the running Kibana major.minor — RESEARCH §2).
+curl -fsS \
+    -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" \
+    -H "kbn-xsrf: true" \
+    -H "kbn-version: ${KBN_VERSION}" \
+    -F file=@/test_data/export.ndjson
