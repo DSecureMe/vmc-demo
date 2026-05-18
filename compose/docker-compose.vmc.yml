@@ -15,7 +15,7 @@ services:
       - ../config/vmc/demo.yml:/etc/vmc/config.yml
       - ../config/vmc/:/test_data
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8000/admin/login/ || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8001/admin/login/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
