@@ -33,6 +33,9 @@ Services:
 
 More guides you can find on [doc report](https://github.com/DSecureMe/vmc-docs)
 
+# Alerting
+The demo previously shipped `bitsensor/elastalert:3.0.0-beta.1`, an abandoned 2019 beta that is no longer compatible with current Elasticsearch releases. As of Phase 1 stabilization it runs the maintained community fork `jertel/elastalert2:2.29.0`, which is config-compatible with the original ElastAlert: existing rules under `config/elastalert/rules/` and the `elastalert.yaml` main config are used unchanged. The new image's entrypoint runs `elastalert-create-index` on every boot, so the demo data script no longer needs to invoke it. The image tag is pinned via `ELASTALERT_VERSION` in `vmc-demo/.env` — do not use `:latest` (auto-tracks master) or floating `:2`.
+
 # Configuration files
 All configs you may find in `demo/config/`
 
