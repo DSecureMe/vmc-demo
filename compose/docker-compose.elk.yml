@@ -11,7 +11,8 @@ services:
     ports:
       - "9200:9200"
     environment:
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+    mem_limit: 3g
     ulimits:
       nofile:
         soft: 65536
