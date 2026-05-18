@@ -86,18 +86,24 @@ def get_cve_sets(asset_count):
         cve_count = 0
         for os in CPE_LIST:
             max_cve = cve_cvss_3.filter('wildcard', cpe__name=F'*{CPE_LIST[os]}*').query(RAND_QUERY).count()
-            count = random.randint(1, max_cve)
-
             if max_cve > 0:
+                count = random.randint(1, max_cve)
                 cves = cve_cvss_3.filter('wildcard', cpe__name=F'*{CPE_LIST[os]}*').query(RAND_QUERY)[0:count]
-
             else:
+                max_cve_v2 = cve_cvss_2.filter('wildcard', cpe__name=F'*{CPE_LIST[os]}*').query(RAND_QUERY).count()
+                if max_cve_v2 == 0:
+                    continue
+                count = random.randint(1, max_cve_v2)
                 cves = cve_cvss_2.filter('wildcard', cpe__name=F'*{CPE_LIST[os]}*').query(RAND_QUERY)[0:count]
 
             cve_sets[os].update(cve for cve in cves)
 
         for cve in cve_sets:
             cve_count += len(cve_sets[cve])
+
+        if cve_count == 0:
+            print('No CVEs available in the index for any CPE; aborting vuln generation')
+            return {k: list(v) for k, v in cve_sets.items()}
 
         print(F'The amount of cve drawn: {cve_count}, '
               F'assets count: {asset_count}, '
@@ -177,9 +183,10 @@ def generate_vulns(asset_count, asset_search, cve_sets):
 
 def main():
     print('Download CVEs')
+    demo_start_year = max(START_YEAR, datetime.now().year - 2)
     group(
         update_cwe.si() |
-        group(update_cve.si(year) for year in range(START_YEAR, datetime.now().year + 1)) |
+        group(update_cve.si(year) for year in range(demo_start_year, datetime.now().year + 1)) |
         update_exploits.si()
     )().get()
 
