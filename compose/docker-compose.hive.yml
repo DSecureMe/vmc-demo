@@ -5,8 +5,15 @@ services:
     image: thehiveproject/thehive:3.5.0-1
     container_name: hive
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
     ports:
       - "9000:9000"
     volumes:
       - ../config/thehive/application.conf:/etc/thehive/application.conf
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9000/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s

@@ -7,11 +7,19 @@ services:
     container_name: vmc_admin
     command: ["admin"]
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - ../config/vmc/demo.yml:/etc/vmc/config.yml
       - ../config/vmc/:/test_data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/admin/login/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   nginx:
     image: dsecureme/vmc-static-nginx:${VMC_VERSION}
@@ -20,7 +28,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - admin
+      admin:
+        condition: service_healthy
     volumes:
       - ../config/vmc/demo.yml:/etc/vmc/config.yml
       - ../config/vmc/:/test_data
@@ -31,9 +40,12 @@ services:
     restart: unless-stopped
     command: ["worker"]
     depends_on:
-      - admin
-      - rabbitmq
-      - redis
+      admin:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - ../config/vmc/demo.yml:/etc/vmc/config.yml
 
@@ -43,8 +55,10 @@ services:
     restart: unless-stopped
     command: ["scheduler"]
     depends_on:
-      - admin
-      - rabbitmq
+      admin:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     volumes:
       - ../config/vmc/demo.yml:/etc/vmc/config.yml
 
@@ -52,10 +66,22 @@ services:
     container_name: rabbitmq
     image: rabbitmq:${RABBITMQ_VERSION}
     env_file: ../.env
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   redis:
     container_name: redis
     image: redis:${REDDIS_VERSION}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
 
 volumes:
