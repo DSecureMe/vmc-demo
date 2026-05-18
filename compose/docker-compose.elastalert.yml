@@ -14,7 +14,7 @@ services:
       - ../config/elastalert/elastalert.yaml:/opt/elastalert/config.yaml
       - ../config/elastalert/rules:/opt/elastalert/rules
     healthcheck:
-      test: ["CMD-SHELL", "pidof python3"]
+      test: ["CMD-SHELL", "grep -q '^elastalert$' /proc/[0-9]*/comm"]
       interval: 10s
       timeout: 5s
       retries: 10
