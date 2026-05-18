@@ -10,6 +10,8 @@ services:
       - ../config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
     ports:
       - "9200:9200"
+    environment:
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
     ulimits:
       nofile:
         soft: 65536
