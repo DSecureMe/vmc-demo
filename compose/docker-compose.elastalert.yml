@@ -2,16 +2,20 @@ version: '3.3'
 
 services:
   elastalert:
-    image: bitsensor/elastalert:3.0.0-beta.1
+    image: jertel/elastalert2:${ELASTALERT_VERSION}
     container_name: elastalert
     restart: unless-stopped
     depends_on:
-      - kibana
-      - elasticsearch
-    ports:
-      - "3030:3030"
-      - "3333:3333"
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
     volumes:
       - ../config/elastalert/elastalert.yaml:/opt/elastalert/config.yaml
-      - ../config/elastalert/elastalert.yaml:/opt/elastalert/config-test.yaml
       - ../config/elastalert/rules:/opt/elastalert/rules
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f elastalert"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
