@@ -183,10 +183,10 @@ def generate_vulns(asset_count, asset_search, cve_sets):
 
 def main():
     print('Download CVEs')
-    demo_start_year = max(START_YEAR, datetime.now().year - 2)
+    demo_year = datetime.now().year
     group(
         update_cwe.si() |
-        group(update_cve.si(year) for year in range(demo_start_year, datetime.now().year + 1)) |
+        update_cve.si(demo_year) |
         update_exploits.si()
     )().get()
 
