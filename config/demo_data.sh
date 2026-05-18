@@ -19,9 +19,9 @@ echo "HIVE: create database (superuser login: admin, password: admin)"
 echo "Ralph: Make migrations"
 "${DC[@]}" exec -T web ralphctl migrate
 
-ralph_has_data=$("${DC[@]}" exec -T web ralphctl shell -c \
-    "from ralph.assets.models import DataCenter; print(DataCenter.objects.exists())" \
-    2>/dev/null | tr -d '[:space:]')
+ralph_has_data=$(echo "from ralph.data_center.models import DataCenter; print('RALPH_HAS_DATA:' + str(DataCenter.objects.exists()))" \
+    | "${DC[@]}" exec -T web ralphctl shell --plain 2>/dev/null \
+    | grep -oE 'RALPH_HAS_DATA:(True|False)' | head -1 | cut -d: -f2)
 if [ "${ralph_has_data}" = "True" ]; then
     echo "Ralph: demo data already present; skipping"
 else
@@ -32,8 +32,8 @@ else
 fi
 
 vmc_has_tenants=$("${DC[@]}" exec -T admin python3 -m vmc shell -c \
-    "from vmc.elasticsearch.models import Tenant; print(Tenant.objects.exists())" \
-    2>/dev/null | tr -d '[:space:]')
+    "from vmc.elasticsearch.models import Tenant; print('VMC_HAS_TENANTS:' + str(Tenant.objects.exists()))" \
+    2>/dev/null | grep -oE 'VMC_HAS_TENANTS:(True|False)' | head -1 | cut -d: -f2)
 if [ "${vmc_has_tenants}" = "True" ]; then
     echo "VMC: Tenant fixtures already loaded; skipping"
 else
