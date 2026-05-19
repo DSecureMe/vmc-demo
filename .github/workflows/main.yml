@@ -30,11 +30,6 @@ jobs:
     needs: [lint]
     timeout-minutes: 30
     steps:
-      - name: Checkout vmc-demo
-        uses: actions/checkout@v4
-        with:
-          path: vmc-demo
-
       - name: Checkout vmc-dev-toolkit + submodules
         uses: actions/checkout@v4
         with:
@@ -42,28 +37,33 @@ jobs:
           submodules: recursive
           path: toolkit
 
-      - name: Build local vmc images (vmc + nginx)
-        run: |
-          cd toolkit
-          docker build -t dsecureme/vmc:1.0.2 -f Dockerfile.vmc-dev .
-          docker build -t dsecureme/vmc-static-nginx:1.0.2 -f Dockerfile.vmc-static-nginx-dev .
+      - name: Overlay current vmc-demo branch on toolkit submodule
+        uses: actions/checkout@v4
+        with:
+          path: toolkit/vmc-demo
+          clean: false
+
+      - name: Build local dev images
+        working-directory: toolkit
+        run: make build
 
       - name: Bring up the stack
-        working-directory: vmc-demo
+        working-directory: toolkit
         run: |
-          docker compose --env-file .env \
-            -f compose/docker-compose.postgresql.yml \
-            -f compose/docker-compose.elk.yml \
-            -f compose/docker-compose.vmc.yml \
-            -f compose/docker-compose.ralph.yml \
-            -f compose/docker-compose.hive.yml \
-            -f compose/docker-compose.elastalert.yml \
+          docker compose --env-file vmc-demo/.env \
+            -f vmc-demo/compose/docker-compose.postgresql.yml \
+            -f vmc-demo/compose/docker-compose.elk.yml \
+            -f vmc-demo/compose/docker-compose.vmc.yml \
+            -f compose/docker-compose.vmc-dev.yml \
+            -f vmc-demo/compose/docker-compose.ralph.yml \
+            -f vmc-demo/compose/docker-compose.hive.yml \
+            -f vmc-demo/compose/docker-compose.elastalert.yml \
             up -d
 
       - name: Wait for healthchecks
-        working-directory: vmc-demo
+        working-directory: toolkit
         run: |
-          DC="docker compose --env-file .env -f compose/docker-compose.postgresql.yml -f compose/docker-compose.elk.yml -f compose/docker-compose.vmc.yml -f compose/docker-compose.ralph.yml -f compose/docker-compose.hive.yml -f compose/docker-compose.elastalert.yml"
+          DC="docker compose --env-file vmc-demo/.env -f vmc-demo/compose/docker-compose.postgresql.yml -f vmc-demo/compose/docker-compose.elk.yml -f vmc-demo/compose/docker-compose.vmc.yml -f compose/docker-compose.vmc-dev.yml -f vmc-demo/compose/docker-compose.ralph.yml -f vmc-demo/compose/docker-compose.hive.yml -f vmc-demo/compose/docker-compose.elastalert.yml"
           for i in $(seq 1 60); do
             if ! $DC ps --format '{{.Status}}' | grep -qE 'unhealthy|starting'; then break; fi
             sleep 10
@@ -71,25 +71,25 @@ jobs:
           $DC ps
 
       - name: Run demodata twice (idempotency)
-        working-directory: vmc-demo
+        working-directory: toolkit
         run: |
-          chmod +x config/demo_data.sh
-          ./config/demo_data.sh
-          ./config/demo_data.sh
+          make demodata
+          make demodata
 
       - name: Assert demodata
-        working-directory: vmc-demo
-        run: bash tests/assert_demodata.sh
+        working-directory: toolkit
+        run: bash vmc-demo/tests/assert_demodata.sh
 
       - name: Dump compose logs on failure
         if: failure()
-        working-directory: vmc-demo
+        working-directory: toolkit
         run: |
-          docker compose --env-file .env \
-            -f compose/docker-compose.postgresql.yml \
-            -f compose/docker-compose.elk.yml \
-            -f compose/docker-compose.vmc.yml \
-            -f compose/docker-compose.ralph.yml \
-            -f compose/docker-compose.hive.yml \
-            -f compose/docker-compose.elastalert.yml \
+          docker compose --env-file vmc-demo/.env \
+            -f vmc-demo/compose/docker-compose.postgresql.yml \
+            -f vmc-demo/compose/docker-compose.elk.yml \
+            -f vmc-demo/compose/docker-compose.vmc.yml \
+            -f compose/docker-compose.vmc-dev.yml \
+            -f vmc-demo/compose/docker-compose.ralph.yml \
+            -f vmc-demo/compose/docker-compose.hive.yml \
+            -f vmc-demo/compose/docker-compose.elastalert.yml \
             logs --tail=200
