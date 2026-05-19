@@ -28,12 +28,28 @@ jobs:
     name: Demo smoke (compose + demodata)
     runs-on: ubuntu-latest
     needs: [lint]
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
-      - name: Checkout
+      - name: Checkout vmc-demo
         uses: actions/checkout@v4
+        with:
+          path: vmc-demo
+
+      - name: Checkout vmc-dev-toolkit + submodules
+        uses: actions/checkout@v4
+        with:
+          repository: DSecureMe/vmc-dev-toolkit
+          submodules: recursive
+          path: toolkit
+
+      - name: Build local vmc images (vmc + nginx)
+        run: |
+          cd toolkit
+          docker build -t dsecureme/vmc:1.0.2 -f Dockerfile.vmc-dev .
+          docker build -t dsecureme/vmc-static-nginx:1.0.2 -f Dockerfile.vmc-static-nginx-dev .
 
       - name: Bring up the stack
+        working-directory: vmc-demo
         run: |
           docker compose --env-file .env \
             -f compose/docker-compose.postgresql.yml \
@@ -45,6 +61,7 @@ jobs:
             up -d
 
       - name: Wait for healthchecks
+        working-directory: vmc-demo
         run: |
           DC="docker compose --env-file .env -f compose/docker-compose.postgresql.yml -f compose/docker-compose.elk.yml -f compose/docker-compose.vmc.yml -f compose/docker-compose.ralph.yml -f compose/docker-compose.hive.yml -f compose/docker-compose.elastalert.yml"
           for i in $(seq 1 60); do
@@ -54,16 +71,19 @@ jobs:
           $DC ps
 
       - name: Run demodata twice (idempotency)
+        working-directory: vmc-demo
         run: |
           chmod +x config/demo_data.sh
           ./config/demo_data.sh
           ./config/demo_data.sh
 
       - name: Assert demodata
+        working-directory: vmc-demo
         run: bash tests/assert_demodata.sh
 
       - name: Dump compose logs on failure
         if: failure()
+        working-directory: vmc-demo
         run: |
           docker compose --env-file .env \
             -f compose/docker-compose.postgresql.yml \
