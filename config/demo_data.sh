@@ -19,8 +19,7 @@ fi
 echo "ElastAlert: index init handled by image entrypoint"
 
 echo "HIVE: create database (superuser login: admin, password: admin)"
-"${DC[@]}" exec -T elasticsearch chmod +x /test_data/load.sh
-"${DC[@]}" exec -T elasticsearch /test_data/load.sh
+"${DC[@]}" exec -T elasticsearch bash /test_data/load.sh
 
 echo "Ralph: Make migrations"
 "${DC[@]}" exec -T web ralphctl migrate
@@ -57,8 +56,7 @@ if [ "${kibana_dashboards}" -gt 0 ] 2>/dev/null; then
     echo "Kibana: dashboards already imported (${kibana_dashboards}); skipping"
 else
     echo "Kibana: Import Sample Dashboards and KPIs"
-    "${DC[@]}" exec -T kibana chmod +x /test_data/load.sh
-    "${DC[@]}" exec -T kibana /test_data/load.sh
+    "${DC[@]}" exec -T kibana bash /test_data/load.sh
 fi
 
 vuln_count=$(curl -s 'http://localhost:9200/vulnerability/_count' \
