@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DC=(docker compose --env-file vmc-demo/.env
-    -f vmc-demo/compose/docker-compose.postgresql.yml
-    -f vmc-demo/compose/docker-compose.elk.yml
-    -f vmc-demo/compose/docker-compose.vmc.yml
-    -f compose/docker-compose.vmc-dev.yml
-    -f vmc-demo/compose/docker-compose.ralph.yml
-    -f vmc-demo/compose/docker-compose.hive.yml
-    -f vmc-demo/compose/docker-compose.elastalert.yml)
+DEMO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TOOLKIT_ROOT="$(cd "${DEMO_ROOT}/.." && pwd)"
+
+DC=(docker compose --env-file "${DEMO_ROOT}/.env"
+    -f "${DEMO_ROOT}/compose/docker-compose.postgresql.yml"
+    -f "${DEMO_ROOT}/compose/docker-compose.elk.yml"
+    -f "${DEMO_ROOT}/compose/docker-compose.vmc.yml"
+    -f "${DEMO_ROOT}/compose/docker-compose.ralph.yml"
+    -f "${DEMO_ROOT}/compose/docker-compose.hive.yml"
+    -f "${DEMO_ROOT}/compose/docker-compose.elastalert.yml")
+
+if [ -f "${TOOLKIT_ROOT}/compose/docker-compose.vmc-dev.yml" ]; then
+    DC+=(-f "${TOOLKIT_ROOT}/compose/docker-compose.vmc-dev.yml")
+fi
 
 echo "ElastAlert: index init handled by image entrypoint"
 
@@ -55,7 +61,7 @@ else
     "${DC[@]}" exec -T kibana /test_data/load.sh
 fi
 
-vuln_count=$(curl -s 'http://localhost:9200/vmc.vulnerability.*/_count' \
+vuln_count=$(curl -s 'http://localhost:9200/vulnerability/_count' \
     | jq -r '.count // 0' 2>/dev/null || echo 0)
 if [ "${vuln_count}" -gt 0 ] 2>/dev/null; then
     echo "VMC: vulnerability data already generated (${vuln_count} docs); skipping"
